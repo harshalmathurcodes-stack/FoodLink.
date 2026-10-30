@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.title }} - FoodLink Donation Details{% endblock %}
+
+{% block content %}
+<div class="container page-container">
+  
+  <div class="breadcrumb">
+    <a href="{{ url_for('listings') }}">← Back to Available Food Listings</a>
+  </div>
+
+  <div class="detail-layout">
+    
+    <!-- Left Column: Item Information -->
+    <div class="detail-main-col">
+      <div class="detail-card">
+        
+        <div class="detail-header">
+          <div>
+            <div class="badge-row">
+              <span class="category-badge">{{ item.category }}</span>
+              <span class="status-badge status-{{ item.status.lower() }}">{{ item.status }}</span>
+            </div>
+            <h1 class="detail-title">{{ item.title }}</h1>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>Description & Details</h3>
+          <p class="detail-description">{{ item.description }}</p>
+        </div>
+
+        <!-- AI Donation Quality & Safety Inspection Report -->
+        <div class="ai-insight-card">
+          <div class="insight-header">
+            <div class="insight-title">
+              <span>🔍</span> AI Donation Inspection Report
+              <span class="model-badge">Checked by Gemma AI</span>
+            </div>
+            {% if item.ai_review_data %}
+              <span class="status-badge status-{{ item.ai_review_data.status.lower().replace('_', '-') }}">
+                {{ item.ai_review_data.status }} (Score: {{ item.ai_review_data.clarity_score }}/100)
+              </span>
+            {% else %}
+              <button class="btn-ai-mini" id="btnRunDetailInspection" 
+                data-title="{{ item.title }}" 
+                data-desc="{{ item.description }}" 
+                data-cat="{{ item.category }}" 
+                data-qty="{{ item.quantity }}" 
+                data-store="{{ item.storage_requirement }}"
+              >
+                Inspect Now
+              </button>
+            {% endif %}
+          </div>
+          
+          <div class="insight-body" id="detailInspectionBody">
+            {% if item.ai_review_data %}
+              <div class="space-y-2">
+                <p><strong>Summary:</strong> {{ item.ai_review_data.summary }}</p>
+                <p><strong>Allergen Notice:</strong> {{ item.ai_review_data.allergen_notice }}</p>
+                <p><strong>Storage Assessment:</strong> {{ item.ai_review_data.storage_evaluation }}</p>
+                {% if item.ai_review_data.feedback %}
+                  <div class="mt-2 text-xs">
+                    <strong>Checklist & Suggestions:</strong>
+                    <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                      {% for fb in item.ai_review_data.feedback %}
+                        <li>{{ fb }}</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                {% endif %}
+              </div>
+            {% else %}
+              <p class="text-sm text-muted">Click "Inspect Now" to run an on-demand AI quality check on this listing.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- AI Summary Block -->
+        <div class="ai-insight-card">
+          <div class="insight-header">
+            <div class="insight-title">
+              <span>✨</span> FoodLink AI Summary
+              <span class="model-badge">gemma-4-26b-a4b-it</span>
+            </div>
+            <button class="btn-ai-mini" id="btnRefreshSummary" data-desc="{{ item.description }}">Regenerate</button>
+          </div>
+          <div class="insight-body" id="aiSummaryBody">
+            <span class="loading-spinner">Loading AI summary...</span>
+          </div>
+        </div>
+
+        <!-- AI Storage & Safe Handling Block -->
+        <div class="ai-insight-card">
+          <div class="insight-header">
+            <div class="insight-title">
+              <span>❄️</span> FoodLink AI Storage & Handling Guidance
+              <span class="model-badge">gemma-4-31b-it</span>
+            </div>
+            <button class="btn-ai-mini" id="btnRefreshStorage" data-title="{{ item.title }}" data-cond="{{ item.storage_requirement }}">Regenerate</button>
+          </div>
+          <div class="insight-body" id="aiStorageBody">
+            <span class="loading-spinner">Loading storage and handling guidance...</span>
+          </div>
+          <div class="insight-disclaimer">
+            ⚠️ <em>Disclaimer: FoodLink AI provides culinary storage suggestions for educational purposes. AI cannot certify food safety. Always inspect food before consuming.</em>
+          </div>
+        </div>
+
+        <!-- Metadata Grid -->
+        <div class="detail-section">
+          <h3>Listing Information</h3>
+          <div class="meta-grid">
+            <div class="meta-card">
+              <span class="meta-card-label">Quantity Available</span>
+              <span class="meta-card-val">{{ item.quantity }}</span>
+            </div>
+            <div class="meta-card">
+              <span class="meta-card-label">Required Storage</span>
+              <span class="meta-card-val">{{ item.storage_requirement }}</span>
+            </div>
+            <div class="meta-card">
+              <span class="meta-card-label">Expiration Date</span>
+              <span class="meta-card-val text-danger">{{ item.expiry_date.replace('T', ' ')[:16] }}</span>
+            </div>
+            <div class="meta-card">
+              <span class="meta-card-label">Posted At</span>
+              <span class="meta-card-val">{{ item.created_at[:16].replace('T', ' ') }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pickup & Donor Info -->
+        <div class="detail-section">
+          <h3>Pickup Location & Donor Information</h3>
+          <div class="pickup-info-box">
+            <p><strong>📍 Pickup Address:</strong> {{ item.pickup_address }}</p>
+            <p><strong>👤 Donor Name:</strong> {{ item.donor_name }}</p>
+            <p><strong>📞 Contact:</strong> {{ item.donor_contact }}</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right Column: Status & Action Cards -->
+    <div class="detail-sidebar-col">
+      
+      <!-- Action Card -->
+      <div class="action-card status-box-{{ item.status.lower() }}">
+        <h3 class="action-card-title">Donation Status</h3>
+        
+        <div class="status-indicator-lg">
+          <span class="status-dot"></span>
+          <strong>{{ item.status }}</strong>
+        </div>
+
+        {% if item.status == 'AVAILABLE' %}
+          <p class="action-card-text">
+            This food is fresh, verified unexpired, and available for collection. Reserve it for your household or charity below.
+          </p>
+
+          <form method="POST" action="{{ url_for('claim_donation', donation_id=item.id) }}" class="claim-form">
+            <div class="form-group">
+              <label for="claimed_by" class="form-label">Your Name or Organization *</label>
+              <input 
+                type="text" 
+                name="claimed_by" 
+                id="claimed_by" 
+                class="form-control" 
+                placeholder="e.g. Hope Shelter, or Alex M." 
+                required
+              >
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg">
+              🤝 Claim This Donation
+            </button>
+          </form>
+
+        {% elif item.status == 'CLAIMED' %}
+          <div class="claimed-info">
+            <p><strong>Claimed by:</strong> {{ item.claimed_by }}</p>
+            <p><strong>Claimed at:</strong> {{ item.claimed_at[:16].replace('T', ' ') }}</p>
+            <p class="info-note">
+              Please pick up the food from the donor address. Once collected, confirm below:
+            </p>
+
+            <form method="POST" action="{{ url_for('collect_donation', donation_id=item.id) }}">
+              <button type="submit" class="btn btn-success btn-block btn-lg">
+                ✅ Confirm Food Collected
+              </button>
+            </form>
+          </div>
+
+        {% elif item.status == 'COLLECTED' %}
+          <div class="collected-info">
+            <div class="collected-icon">🎉</div>
+            <p><strong>Food Rescued & Collected!</strong></p>
+            <p>Collected at: {{ item.collected_at[:16].replace('T', ' ') if item.collected_at else 'Completed' }}</p>
+            <p class="text-muted">Thank you to the donor and recipient for reducing food waste!</p>
+          </div>
+
+        {% elif item.status == 'EXPIRED' %}
+          <div class="expired-info">
+            <div class="expired-icon">⏰</div>
+            <p><strong>Listing Has Expired</strong></p>
+            <p class="text-danger">
+              This donation has passed its expiration date. In accordance with FoodLink food safety policies, expired food cannot be claimed or distributed.
+            </p>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Food Safety Reminder Box -->
+      <div class="safety-card">
+        <h4>🛡️ Food Safety First</h4>
+        <p>
+          FoodLink enforces strict deterministic backend checks. Food safety and consumption suitability cannot be determined by AI models. Always inspect appearance, smell, and temperature before consumption.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}

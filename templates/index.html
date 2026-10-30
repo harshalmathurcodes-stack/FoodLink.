@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}FoodLink - Surplus Food Recovery & Community Sharing{% endblock %}
+
+{% block content %}
+<div class="container hero-section">
+  <div class="hero-text">
+    <div class="badge-pill">
+      <span class="pulse-dot"></span> Community Food Sharing Platform
+    </div>
+    <h1 class="hero-title">Rescue Good Food.<br>Nourish Your Community.</h1>
+    <p class="hero-subtitle">
+      FoodLink connects bakeries, grocery stores, restaurants, and individuals with neighbors and charities. List surplus wholesome food before it expires, or claim available meals today.
+    </p>
+    <div class="hero-cta">
+      <a href="{{ url_for('donate') }}" class="btn btn-primary btn-lg">Donate Food Now</a>
+      <a href="{{ url_for('listings') }}" class="btn btn-secondary btn-lg">Browse Available Food</a>
+    </div>
+  </div>
+
+  <div class="hero-stats-card">
+    <div class="stats-header">
+      <h3>Live Community Impact</h3>
+      <span class="live-indicator">● Real-time</span>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-box stat-available">
+        <span class="stat-num">{{ stats.available }}</span>
+        <span class="stat-label">Available Items</span>
+      </div>
+      <div class="stat-box stat-claimed">
+        <span class="stat-num">{{ stats.claimed }}</span>
+        <span class="stat-label">Claimed for Pickup</span>
+      </div>
+      <div class="stat-box stat-collected">
+        <span class="stat-num">{{ stats.collected }}</span>
+        <span class="stat-label">Successfully Rescued</span>
+      </div>
+      <div class="stat-box stat-expired">
+        <span class="stat-num">{{ stats.expired }}</span>
+        <span class="stat-label">Expired (Filtered)</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Workflow Explanation Banner -->
+<div class="workflow-banner">
+  <div class="container">
+    <h2 class="section-title text-center">The 4-Step Resilient Food Workflow</h2>
+    <p class="section-sub text-center">Deterministic backend logic strictly guarantees expiry verification at every stage.</p>
+
+    <div class="workflow-grid">
+      <div class="workflow-step">
+        <div class="step-badge">Step 1</div>
+        <div class="step-icon">📦</div>
+        <h3>Donate</h3>
+        <p>Donors post surplus food details, quantity, pickup location, and verified future expiration date.</p>
+      </div>
+
+      <div class="workflow-arrow">→</div>
+
+      <div class="workflow-step">
+        <div class="step-badge">Step 2</div>
+        <div class="step-icon">🔍</div>
+        <h3>View</h3>
+        <p>Community members and charities view active available items filtered by category and distance.</p>
+      </div>
+
+      <div class="workflow-arrow">→</div>
+
+      <div class="workflow-step">
+        <div class="step-badge">Step 3</div>
+        <div class="step-icon">🤝</div>
+        <h3>Claim</h3>
+        <p>Recipients reserve a donation instantly. Backend updates status to Claimed to avoid double collection.</p>
+      </div>
+
+      <div class="workflow-arrow">→</div>
+
+      <div class="workflow-step">
+        <div class="step-badge">Step 4</div>
+        <div class="step-icon">✨</div>
+        <h3>Collect</h3>
+        <p>Recipient picks up food from the donor and confirms collection. Surplus food successfully saved!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI Assistant Spotlight Section -->
+<div class="container ai-spotlight">
+  <div class="ai-spotlight-card">
+    <div class="ai-card-content">
+      <div class="ai-tag">
+        <span>✨ Google Gemma 4 Powered</span>
+      </div>
+      <h2>Meet FoodLink AI Assistant</h2>
+      <p>
+        Integrated with Google's Gemma 4 models (<strong>gemma-4-31b-it</strong> for deep reasoning and <strong>gemma-4-26b-a4b-it</strong> for fast response).
+      </p>
+      <div class="ai-features-list">
+        <div class="ai-feature-item">
+          <span class="feature-icon">🏷️</span>
+          <div>
+            <strong>Smart Category Suggestions</strong>
+            <span>Auto-tags items based on description</span>
+          </div>
+        </div>
+        <div class="ai-feature-item">
+          <span class="feature-icon">❄️</span>
+          <div>
+            <strong>Safe Storage & Handling Advice</strong>
+            <span>Practical ambient, chilled, and frozen handling tips</span>
+          </div>
+        </div>
+        <div class="ai-feature-item">
+          <span class="feature-icon">📝</span>
+          <div>
+            <strong>Concise Summaries & Description Drafting</strong>
+            <span>Helps donors write clear, allergen-aware listings</span>
+          </div>
+        </div>
+        <div class="ai-feature-item">
+          <span class="feature-icon">💡</span>
+          <div>
+            <strong>Zero-Waste Kitchen Q&A</strong>
+            <span>Practical everyday tips for FIFO, meal prep, and composting</span>
+          </div>
+        </div>
+      </div>
+      <div class="ai-cta">
+        <a href="{{ url_for('ai_assistant_page') }}" class="btn btn-outline-primary">Open AI Assistant Studio →</a>
+      </div>
+    </div>
+    <div class="ai-card-safety-note">
+      <div class="safety-box">
+        <span class="shield-icon">🛡️</span>
+        <h4>Deterministic Safety Boundary</h4>
+        <p>
+          AI features are strictly assistive. Deterministic Python backend logic strictly controls food expiration, listing status, and availability. AI is never permitted to determine food safety or certify consumption viability.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Listings Section -->
+<div class="container recent-listings-section">
+  <div class="section-header">
+    <div>
+      <h2 class="section-title">Fresh Available Surplus</h2>
+      <p class="section-sub">Wholesome food ready for community collection</p>
+    </div>
+    <a href="{{ url_for('listings') }}" class="btn btn-secondary">View All Donations ({{ stats.available }}) →</a>
+  </div>
+
+  {% if donations %}
+    <div class="donations-grid">
+      {% for item in donations %}
+        <div class="donation-card">
+          <div class="card-top">
+            <span class="category-badge">{{ item.category }}</span>
+            <span class="status-badge status-{{ item.status.lower() }}">{{ item.status }}</span>
+          </div>
+
+          <h3 class="card-title">{{ item.title }}</h3>
+          <p class="card-desc">{{ item.description[:110] }}{% if item.description|length > 110 %}...{% endif %}</p>
+
+          <div class="card-meta">
+            <div class="meta-row">
+              <span class="meta-icon">⚖️</span>
+              <span class="meta-val"><strong>Quantity:</strong> {{ item.quantity }}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-icon">❄️</span>
+              <span class="meta-val"><strong>Storage:</strong> {{ item.storage_requirement }}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-icon">📍</span>
+              <span class="meta-val">{{ item.pickup_address }}</span>
+            </div>
+            <div class="meta-row meta-expiry">
+              <span class="meta-icon">⏰</span>
+              <span class="meta-val"><strong>Expires:</strong> {{ item.expiry_date.replace('T', ' ')[:16] }}</span>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <a href="{{ url_for('donation_detail', donation_id=item.id) }}" class="btn btn-outline-primary btn-block">
+              View Details & Claim
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🥗</div>
+      <h3>No Active Donations Available Right Now</h3>
+      <p>Be the first in your area to rescue surplus food and help a neighbor.</p>
+      <a href="{{ url_for('donate') }}" class="btn btn-primary">+ Post a Food Donation</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

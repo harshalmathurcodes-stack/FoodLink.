@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+
+{% block title %}FoodLink AI Assistant - Powered by Google Gemma 4{% endblock %}
+
+{% block content %}
+<div class="container page-container">
+  
+  <div class="ai-hub-header">
+    <div class="ai-hub-badge">
+      <span>✨</span> Google Gemma 4 Integration Hub
+    </div>
+    <h1 class="ai-hub-title">FoodLink AI Assistant</h1>
+    <p class="ai-hub-sub">
+      Intelligent, decoupled food surplus assistance powered by Google Gemma 4 models.
+      Get instant category classifications, storage guidance, listing summaries, donor drafting, and food waste reduction insights.
+    </p>
+
+    <!-- Model Configuration Control -->
+    <div class="model-control-card">
+      <div class="model-control-row">
+        <div class="model-selector-group">
+          <label for="hubModelSelect"><strong>Active Gemma Model:</strong></label>
+          <select id="hubModelSelect" class="form-control select-input-inline">
+            <option value="gemma-4-31b-it" selected>gemma-4-31b-it (Detailed Reasoning & Comprehensive Responses)</option>
+            <option value="gemma-4-26b-a4b-it">gemma-4-26b-a4b-it (Faster, Lightweight Responses)</option>
+          </select>
+        </div>
+
+        <div class="model-status-indicator">
+          <span class="status-dot {% if ai_online %}online{% else %}offline{% endif %}"></span>
+          <span>{% if ai_online %}Gemma Live API Active{% else %}Offline Fallback Mode Active{% endif %}</span>
+        </div>
+      </div>
+      <p class="model-note">
+        <em>💡 Model selection is configurable. gemma-4-31b-it is optimized for complex reasoning, while gemma-4-26b-a4b-it provides rapid lightweight responses. Requests invoke only the selected model.</em>
+      </p>
+    </div>
+  </div>
+
+  <!-- Safety Warning Notice -->
+  <div class="safety-alert-banner">
+    <div class="safety-alert-icon">🛡️</div>
+    <div class="safety-alert-text">
+      <strong>Important AI Safety Notice & Restrictions:</strong>
+      FoodLink AI is strictly assistive. AI models <em>cannot</em> determine whether food is safe to consume, nor certify safety. Expired food is strictly prohibited from donation and cannot be overridden by AI. All expiration and availability rules are deterministically enforced by Python backend code.
+    </div>
+    <button type="button" class="btn btn-outline-danger btn-sm" id="btnTestSafetyGuard">Test Safety Guard</button>
+  </div>
+
+  <!-- Interactive AI Tools Tabs -->
+  <div class="ai-tabs-container">
+    <div class="ai-tabs-nav">
+      <button class="ai-tab-btn active" data-tab="tab-custom-prompt">
+        💬 Custom AI Prompt Studio
+      </button>
+      <button class="ai-tab-btn" data-tab="tab-inspect-donation">
+        🔍 Donation Inspector
+      </button>
+      <button class="ai-tab-btn" data-tab="tab-category">
+        🏷️ Category
+      </button>
+      <button class="ai-tab-btn" data-tab="tab-storage">
+        ❄️ Storage
+      </button>
+      <button class="ai-tab-btn" data-tab="tab-summarize">
+        📋 Summarize
+      </button>
+      <button class="ai-tab-btn" data-tab="tab-draft">
+        ✍️ Drafter
+      </button>
+      <button class="ai-tab-btn" data-tab="tab-qa">
+        💡 Food Waste Q&A
+      </button>
+    </div>
+
+    <!-- Tab 0: Custom AI Prompt Studio -->
+    <div class="ai-tab-panel active" id="tab-custom-prompt">
+      <div class="tab-panel-header">
+        <h3>Custom AI Prompt Studio</h3>
+        <p>Send open-ended instructions, donation appeals, menu analyses, or custom questions directly to Google Gemma 4.</p>
+        <span class="model-recommended-pill">Recommended: gemma-4-31b-it (Deep Reasoning)</span>
+      </div>
+
+      <div class="tab-panel-body">
+        <div class="form-group">
+          <label class="form-label">Custom Prompt / Instruction *</label>
+          <textarea 
+            id="customInputPrompt" 
+            rows="4" 
+            class="form-control" 
+            placeholder="Type your custom prompt here... e.g. 'Draft a friendly community outreach post for 25 hot vegetarian lasagna portions available for immediate pickup by local families or shelters.'"
+          >Draft a clear and encouraging community announcement for 25 hot gourmet vegetable lasagna portions prepared today by our community kitchen, highlighting pickup instructions, temperature holding, and dietary details.</textarea>
+        </div>
+
+        <!-- Optional System Instructions -->
+        <div class="form-group">
+          <details class="system-prompt-details">
+            <summary class="text-xs font-semibold cursor-pointer text-muted">⚙️ Advanced: Custom System Instructions (Optional)</summary>
+            <div class="mt-2">
+              <input 
+                type="text" 
+                id="customInputSysPrompt" 
+                class="form-control text-xs" 
+                placeholder="Optional system persona, e.g. 'You are a certified community nutrition specialist...'" 
+                value="You are FoodLink AI Assistant, an expert in community food recovery, culinary preservation, and zero-waste kitchen management."
+              >
+            </div>
+          </details>
+        </div>
+
+        <div class="tab-action-row">
+          <button type="button" id="btnRunCustomPrompt" class="btn btn-primary btn-lg">
+            ✨ Send Custom Prompt to Gemma
+          </button>
+          <div class="sample-pills">
+            <span>Try sample prompts:</span>
+            <button type="button" class="sample-pill" data-target="#customInputPrompt" data-val="Analyze the allergen risks and packaging best practices for distributing 30 trays of assorted catering salads.">Salad Allergen Analysis</button>
+            <button type="button" class="sample-pill" data-target="#customInputPrompt" data-val="Create a 3-day meal prep plan using surplus ripe bananas, spinach, and whole milk to prevent kitchen spoilage.">Zero-Waste Meal Plan</button>
+            <button type="button" class="sample-pill" data-target="#customInputPrompt" data-val="Write a formal donation transfer note for 15 crates of farm-fresh organic produce to a local food bank.">Donation Transfer Note</button>
+          </div>
+        </div>
+
+        <div class="ai-result-box hidden" id="customResultBox">
+          <div class="result-header">
+            <strong>Gemma AI Response:</strong>
+            <span class="result-source-badge" id="customSourceBadge"></span>
+          </div>
+          <div class="result-body-text" id="customOutputVal"></div>
+          <div class="result-disclaimer" id="customDisclaimerVal"></div>
+          <small class="result-model-used" id="customModelUsed"></small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Donation Inspector -->
+    <div class="ai-tab-panel" id="tab-inspect-donation">
+      <div class="tab-panel-header">
+        <h3>Automatic Donation Inspector</h3>
+        <p>Inspect any food donation listing for completeness, clarity, allergen disclosures, storage alignment, and safety compliance.</p>
+        <span class="model-recommended-pill">Evaluates Every Donation on FoodLink</span>
+      </div>
+
+      <div class="tab-panel-body">
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label class="form-label">Food Title:</label>
+            <input type="text" id="inspectTitle" class="form-control" value="Cooked Vegetable Lasagna Trays">
+          </div>
+          <div class="form-group col-half">
+            <label class="form-label">Category:</label>
+            <select id="inspectCategory" class="form-control select-input">
+              {% for c in categories %}
+                <option value="{{ c }}" {% if 'Prepared' in c %}selected{% endif %}>{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-half">
+            <label class="form-label">Quantity:</label>
+            <input type="text" id="inspectQuantity" class="form-control" value="8 large trays (approx 32 servings)">
+          </div>
+          <div class="form-group col-half">
+            <label class="form-label">Storage Condition:</label>
+            <select id="inspectStorage" class="form-control select-input">
+              {% for s in storage_conditions %}
+                <option value="{{ s }}" {% if 'Refrigerated' in s %}selected{% endif %}>{{ s }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description:</label>
+          <textarea id="inspectDesc" rows="3" class="form-control">Freshly baked vegetable lasagna with tomato sauce, ricotta, and mozzarella cheese. Prepared at 11 AM today. Stored in covered foil trays in commercial refrigerator.</textarea>
+        </div>
+
+        <div class="tab-action-row">
+          <button type="button" id="btnRunInspect" class="btn btn-primary">
+            🔍 Run AI Donation Check
+          </button>
+          <div class="sample-pills">
+            <span>Test scenarios:</span>
+            <button type="button" class="sample-pill" id="btnInspectSamplePerishable">Perishable Cooked Food</button>
+            <button type="button" class="sample-pill" id="btnInspectSampleUnsafe">Test Prohibited/Spoiled Flag</button>
+          </div>
+        </div>
+
+        <div class="ai-result-box hidden" id="inspectResultBox">
+          <div class="result-header">
+            <div>
+              <strong>AI Donation Inspection Report:</strong>
+              <span id="inspectStatusBadge" class="status-badge ml-2"></span>
+            </div>
+            <span class="result-source-badge" id="inspectSourceBadge"></span>
+          </div>
+
+          <div class="inspect-score-row mb-3">
+            <span class="text-sm font-semibold">Listing Clarity & Quality Score:</span>
+            <span id="inspectScoreVal" class="font-bold text-lg text-emerald-600"></span>
+          </div>
+
+          <div class="inspect-detail-card bg-white p-3 rounded border border-border mb-3">
+            <h4 class="text-xs font-bold uppercase text-muted mb-1">Generated Summary</h4>
+            <div id="inspectSummaryVal" class="text-sm"></div>
+          </div>
+
+          <div class="inspect-detail-card bg-white p-3 rounded border border-border mb-3">
+            <h4 class="text-xs font-bold uppercase text-muted mb-1">Allergen & Storage Assessment</h4>
+            <div id="inspectAllergenVal" class="text-xs text-sub mb-1"></div>
+            <div id="inspectStorageVal" class="text-xs text-sub"></div>
+          </div>
+
+          <div class="inspect-detail-card bg-white p-3 rounded border border-border">
+            <h4 class="text-xs font-bold uppercase text-muted mb-1">AI Inspector Feedback & Checklist</h4>
+            <div id="inspectFeedbackVal" class="text-xs space-y-1"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 1: Category Suggestion -->
+    <div class="ai-tab-panel active" id="tab-category">
+      <div class="tab-panel-header">
+        <h3>Food Category Suggestion</h3>
+        <p>Suggests the most accurate FoodLink category based on food item description.</p>
+        <span class="model-recommended-pill">Recommended: gemma-4-26b-a4b-it (Lightweight)</span>
+      </div>
+
+      <div class="tab-panel-body">
+        <div class="form-group">
+          <label class="form-label">Food Description / Title:</label>
+          <input 
+            type="text" 
+            id="catInputDesc" 
+            class="form-control" 
+            placeholder="e.g. 5 freshly baked whole grain sourdough loaves from morning bake"
+            value="5 freshly baked whole grain sourdough loaves from morning bake"
+          >
+        </div>
+        <div class="tab-action-row">
+          <button type="button" id="btnRunCategory" class="btn btn-primary">
+            ✨ Suggest Category
+          </button>
+          <div class="sample-pills">
+            <span>Try sample:</span>
+            <button type="button" class="sample-pill" data-target="#catInputDesc" data-val="10 kg crate of organic vine tomatoes">Tomatoes</button>
+            <button type="button" class="sample-pill" data-target="#catInputDesc" data-val="20 portions of chicken vegetable curry with basmati rice">Curry</button>
+            <button type="button" class="sample-pill" data-target="#catInputDesc" data-val="6 cartons of pasteurized whole milk">Milk</button>
+          </div>
+        </div>
+
+        <div class="ai-result-box hidden" id="catResultBox">
+          <div class="result-header">
+            <strong>Suggested Category:</strong>
+            <span class="result-source-badge" id="catSourceBadge"></span>
+          </div>
+          <div class="result-highlight" id="catOutputVal"></div>
+          <small class="result-model-used" id="catModelUsed"></small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Storage & Handling -->
+    <div class="ai-tab-panel" id="tab-storage">
+      <div class="tab-panel-header">
+        <h3>Storage & Handling Suggestions</h3>
+        <p>Recommends appropriate storage conditions (ambient, refrigerated, frozen) and handling best practices.</p>
+        <span class="model-recommended-pill">Recommended: gemma-4-31b-it (Detailed Reasoning)</span>
+      </div>
+
+      <div class="tab-panel-body">
+        <div class="form-group">
+          <label class="form-label">Food Item or Dish:</label>
+          <input 
+            type="text" 
+            id="storageInputFood" 
+            class="form-control" 
+            placeholder="e.g. Cooked vegetable lasagna, dairy yogurt, or fresh strawberries"
+            value="Cooked vegetable lasagna portions in foil trays"
+          >
+        </div>
+        <div class="tab-action-row">
+          <button type="button" id="btnRunStorage" class="btn btn-primary">
+            ❄️ Get Storage & Handling Advice
+          </button>
+          <div class="sample-pills">
+            <span>Try sample:</span>
+            <button type="button" class="sample-pill" data-target="#storageInputFood" data-val="Frozen salmon fillets in sealed packaging">Frozen Salmon</button>
+            <button type="button" class="sample-pill" data-target="#storageInputFood" data-val="Dry penne pasta and canned tomato puree">Dry Goods</button>
+          </div>
+        </div>
+
+        <div class="ai-result-box hidden" id="storageResultBox">
+          <div class="result-header">
+            <strong>Recommended Storage Condition:</strong>
+            <span class="result-source-badge" id="storageSourceBadge"></span>
+          </div>
+          <div class="result-badge-highlight" id="storageConditionVal"></div>
+          <div class="result-body-text" id="storageAdviceVal"></div>
+          <div class="result-disclaimer" id="storageDisclaimerVal"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Summarize Listing -->
+    <div class="ai-tab-panel" id="tab-summarize">
+      <div class="tab-panel-header">
+        <h3>Summarize Food Donation Descriptions</h3>
+        <p>Condenses lengthy donation descriptions into a crisp, recipient-friendly 1-2 sentence summary.</p>
+        <span class="model-recommended-pill">Recommended: gemma-4-26b-a4b-it (Lightweight)</span>
+      </div>
+
+      <div class="tab-panel-body">
+        <div class="form-group">
+          <label class="form-label">Full Donation Description:</label>
+          <textarea id="sumInputDesc" rows="4" class="form-control">We hosted an executive lunch event today and have roughly 18 gourmet Mediterranean boxed meals untouched. Each box includes grilled chicken or falafel wrap, a side salad, hummus, and pita. They were prepared at 11:30 AM today, stored in cold coolers, and are individually sealed in recyclable cardboard boxes. Pickup from our loading dock on 5th Avenue.</textarea>
+        </div>
+        <div class="tab-action-row">
+          <button type="button" id="btnRunSummarize" class="btn btn-primary">
+            📋 Generate Summary
+          </button>
+        </div>
+
+        <div class="ai-result-box hidden" id="sumResultBox">
+          <div class="result-header">
+            <strong>Summary:</strong>
+            <span class="result-source-badge" id="sumSourceBadge"></span>
+          </div>
+          <div class="result-body-text" id="sumOutputVal"></div>
+          <small class="result-model-used" id="sumModelUsed"></small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: Donor Description Drafter -->
+    <div class="ai-tab-panel" id="tab-draft">
+      <div class="tab-panel-header">
+        <h3>Help Donors Write Clear Descriptions</h3>
+        <p>Transforms rough notes into structured, informative, allergen-conscious listings with pickup checklists.</p>
+        <span class="model-recommended-pill">Recommended: gemma-4-31b-it (Detailed Reasoning)</span>
+      </div>
+
+      <div class="tab-panel-body">
+        <div class="form-group">
+          <label class="form-label">Rough Notes or Vague Description:</label>
+          <textarea id="draftInputNotes" rows="3" class="form-control" placeholder="e.g. some leftover catering sandwiches and salads from company meeting">leftover catering sandwiches and fruit salad from our company meeting</textarea>
+        </div>
+        <div class="tab-action-row">
+          <button type="button" id="btnRunDraft" class="btn btn-primary">
+            ✍️ Polish & Structure Description
+          </button>
+        </div>
+
+        <div class="ai-result-box hidden" id="draftResultBox">
+          <div class="result-header">
+            <strong>Polished Listing & Checklist:</strong>
+            <span class="result-source-badge" id="draftSourceBadge"></span>
+          </div>
+          <div class="result-body-text" id="draftOutputVal"></div>
+          <small class="result-model-used" id="draftModelUsed"></small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 5: Food Waste Q&A -->
+    <div class="ai-tab-panel" id="tab-qa">
+      <div class="tab-panel-header">
+        <h3>Reducing Food Waste Q&A</h3>
+        <p>Ask general questions about FIFO inventory, backyard composting, portioning, and community food sharing.</p>
+        <span class="model-recommended-pill">Recommended: gemma-4-31b-it (Comprehensive Reasoning)</span>
+      </div>
+
+      <div class="tab-panel-body">
+        <div class="form-group">
+          <label class="form-label">Ask a Question:</label>
+          <input 
+            type="text" 
+            id="qaInputQuestion" 
+            class="form-control" 
+            placeholder="e.g. How do I use the FIFO method in my refrigerator to reduce spoilage?"
+            value="How does the First-In, First-Out (FIFO) method help reduce food waste in home kitchens?"
+          >
+        </div>
+        <div class="tab-action-row">
+          <button type="button" id="btnRunQA" class="btn btn-primary">
+            💡 Ask Question
+          </button>
+          <div class="sample-pills">
+            <span>Popular topics:</span>
+            <button type="button" class="sample-pill" data-target="#qaInputQuestion" data-val="What are the essential rules for backyard composting without attracting pests?">Composting</button>
+            <button type="button" class="sample-pill" data-target="#qaInputQuestion" data-val="What types of food can safely be donated to community food pantries?">Donation Rules</button>
+          </div>
+        </div>
+
+        <div class="ai-result-box hidden" id="qaResultBox">
+          <div class="result-header">
+            <strong>Answer:</strong>
+            <span class="result-source-badge" id="qaSourceBadge"></span>
+          </div>
+          <div class="result-body-text" id="qaOutputVal"></div>
+          <div class="result-disclaimer" id="qaDisclaimerVal"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

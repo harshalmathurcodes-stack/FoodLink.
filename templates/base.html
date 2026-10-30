@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}FoodLink - Community Food Sharing & Surplus Recovery{% endblock %}</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="{{ url_for('index') }}" class="brand-logo">
+        <span class="logo-icon">🌱</span>
+        <span class="brand-text">Food<span class="brand-accent">Link</span></span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="{{ url_for('index') }}" class="nav-item {% if request.endpoint == 'index' %}active{% endif %}">Home</a>
+        <a href="{{ url_for('listings') }}" class="nav-item {% if request.endpoint == 'listings' %}active{% endif %}">Available Food</a>
+        <a href="{{ url_for('donate') }}" class="nav-item {% if request.endpoint == 'donate' %}active{% endif %}">Donate Food</a>
+        <a href="{{ url_for('ai_assistant_page') }}" class="nav-item ai-nav-pill {% if request.endpoint == 'ai_assistant_page' %}active{% endif %}">
+          <span class="sparkle">✨</span> AI Assistant
+          <span class="model-badge">Gemma 4</span>
+        </a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="{{ url_for('donate') }}" class="btn btn-primary btn-sm">+ Post Donation</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Flash Messages Alert Bar -->
+  <div class="container flash-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">
+            <span class="alert-icon">
+              {% if category == 'success' %}✅{% elif category == 'danger' %}⚠️{% else %}ℹ️{% endif %}
+            </span>
+            <div class="alert-content">{{ message }}</div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <div class="brand-logo">
+          <span class="logo-icon">🌱</span>
+          <span class="brand-text">Food<span class="brand-accent">Link</span></span>
+        </div>
+        <p class="footer-desc">
+          Connecting local food donors with communities in need. Reducing waste, fighting hunger, and building resilient communities.
+        </p>
+      </div>
+
+      <div class="footer-safety">
+        <h4>Food Safety & Guidelines</h4>
+        <p class="safety-note">
+          ⚠️ <strong>Strict Safety Standard:</strong> FoodLink enforces deterministic expiry date verification. Expired food is strictly prohibited from donation. AI does not certify food safety or override expiration. Always adhere to <em>"When in doubt, throw it out."</em>
+        </p>
+      </div>
+
+      <div class="footer-models">
+        <h4>AI Powered By Google Gemma 4</h4>
+        <ul class="model-tags">
+          <li><code>gemma-4-31b-it</code> <span class="tag-desc">Detailed Reasoning</span></li>
+          <li><code>gemma-4-26b-a4b-it</code> <span class="tag-desc">Fast & Lightweight</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom container">
+      <p>&copy; 2026 FoodLink Initiative. All rights reserved. Deterministic backend controls food safety compliance.</p>
+    </div>
+  </footer>
+
+  <!-- Main Javascript -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

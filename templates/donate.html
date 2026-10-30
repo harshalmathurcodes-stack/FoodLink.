@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Donate Surplus Food - FoodLink{% endblock %}
+
+{% block content %}
+<div class="container page-container">
+  <div class="donate-layout">
+    
+    <!-- Main Donation Form Column -->
+    <div class="donate-form-column">
+      <div class="form-card">
+        <div class="form-header">
+          <h2>Share Surplus Wholesome Food</h2>
+          <p class="form-sub">
+            List fresh, unexpired food for local community members, food pantries, or shelters.
+          </p>
+        </div>
+
+        <form method="POST" action="{{ url_for('donate') }}" class="donation-form" id="donationForm">
+          
+          <!-- Food Title -->
+          <div class="form-group">
+            <label for="title" class="form-label">Food Title / Item Name *</label>
+            <input 
+              type="text" 
+              name="title" 
+              id="title" 
+              class="form-control" 
+              placeholder="e.g. 5 Loaves Fresh Sourdough Bread, 10kg Organic Tomatoes" 
+              value="{{ form_data.get('title', '') }}" 
+              required
+            >
+          </div>
+
+          <!-- Description with AI Help -->
+          <div class="form-group">
+            <div class="label-with-ai">
+              <label for="description" class="form-label">Food Description & Details *</label>
+              <button type="button" class="btn-ai-mini" id="btnAiPolishDesc" title="Use Gemma AI to polish description with portions, allergens, and clarity">
+                <span>✨</span> AI Polish Description
+              </button>
+            </div>
+            <textarea 
+              name="description" 
+              id="description" 
+              rows="4" 
+              class="form-control" 
+              placeholder="Describe the food, ingredients, packaging (e.g. individually wrapped), and any allergens (e.g., contains nuts, dairy, gluten)..." 
+              required
+            >{{ form_data.get('description', '') }}</textarea>
+            <small class="field-hint">Include allergen details, whether food is sealed, and heating/handling instructions.</small>
+          </div>
+
+          <!-- Category Selection with AI Suggestion -->
+          <div class="form-row">
+            <div class="form-group col-half">
+              <div class="label-with-ai">
+                <label for="category" class="form-label">Category *</label>
+                <button type="button" class="btn-ai-mini" id="btnAiSuggestCat" title="Use Gemma AI to classify category">
+                  <span>✨</span> AI Suggest
+                </button>
+              </div>
+              <select name="category" id="category" class="form-control select-input" required>
+                {% for cat in categories %}
+                  <option value="{{ cat }}" {% if form_data.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Quantity -->
+            <div class="form-group col-half">
+              <label for="quantity" class="form-label">Quantity & Portions *</label>
+              <input 
+                type="text" 
+                name="quantity" 
+                id="quantity" 
+                class="form-control" 
+                placeholder="e.g. 15 boxed meals, 5 kg, 2 crates" 
+                value="{{ form_data.get('quantity', '') }}" 
+                required
+              >
+            </div>
+          </div>
+
+          <!-- Expiration Date & Storage Requirement -->
+          <div class="form-row">
+            <!-- Deterministic Expiry Input -->
+            <div class="form-group col-half">
+              <label for="expiry_date" class="form-label">
+                Expiration / Best Before Date & Time *
+                <span class="badge-required-date">Strictly Future</span>
+              </label>
+              <input 
+                type="datetime-local" 
+                name="expiry_date" 
+                id="expiry_date" 
+                class="form-control" 
+                value="{{ form_data.get('expiry_date', suggested_expiry) }}" 
+                required
+              >
+              <small class="field-hint text-danger">Backend strictly rejects expired food. Must be in the future.</small>
+            </div>
+
+            <!-- Storage Requirement with AI Suggestion -->
+            <div class="form-group col-half">
+              <div class="label-with-ai">
+                <label for="storage_requirement" class="form-label">Storage Requirement *</label>
+                <button type="button" class="btn-ai-mini" id="btnAiStorageAdvice" title="Get Gemma AI storage and temperature recommendations">
+                  <span>✨</span> AI Advice
+                </button>
+              </div>
+              <select name="storage_requirement" id="storage_requirement" class="form-control select-input" required>
+                {% for cond in storage_conditions %}
+                  <option value="{{ cond }}" {% if form_data.get('storage_requirement') == cond %}selected{% endif %}>{{ cond }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <!-- Pickup Address -->
+          <div class="form-group">
+            <label for="pickup_address" class="form-label">Pickup Address / Location *</label>
+            <input 
+              type="text" 
+              name="pickup_address" 
+              id="pickup_address" 
+              class="form-control" 
+              placeholder="e.g. 742 Evergreen Terrace, Back Entrance, Door Code #1234" 
+              value="{{ form_data.get('pickup_address', '') }}" 
+              required
+            >
+          </div>
+
+          <!-- Donor Name & Contact Info -->
+          <div class="form-row">
+            <div class="form-group col-half">
+              <label for="donor_name" class="form-label">Donor / Organization Name *</label>
+              <input 
+                type="text" 
+                name="donor_name" 
+                id="donor_name" 
+                class="form-control" 
+                placeholder="e.g. Main Street Bakery, or Jane Doe" 
+                value="{{ form_data.get('donor_name', '') }}" 
+                required
+              >
+            </div>
+
+            <div class="form-group col-half">
+              <label for="donor_contact" class="form-label">Contact Email or Phone *</label>
+              <input 
+                type="text" 
+                name="donor_contact" 
+                id="donor_contact" 
+                class="form-control" 
+                placeholder="e.g. donor@example.com or +1 555-0199" 
+                value="{{ form_data.get('donor_contact', '') }}" 
+                required
+              >
+            </div>
+          </div>
+
+          <!-- AI Pre-Submission Quality Check Indicator -->
+          <div class="ai-precheck-card">
+            <div class="ai-precheck-header">
+              <div class="flex items-center gap-2">
+                <span>🤖</span>
+                <strong>Automatic AI Donation Check:</strong>
+              </div>
+              <button type="button" id="btnRunFormPrecheck" class="btn-ai-mini">
+                <span>✨</span> Run Pre-Check Now
+              </button>
+            </div>
+            <p class="text-xs text-muted mt-1">
+              Every donation submitted to FoodLink is checked by Gemma AI for description clarity, packaging details, allergen notices, and storage alignment.
+            </p>
+            <div id="formPrecheckResult" class="hidden mt-2 p-2 bg-white rounded border border-border text-xs">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="form-submit">
+            <button type="submit" class="btn btn-primary btn-lg btn-block">
+              Submit Food Donation (With AI Verification) →
+            </button>
+          </div>
+              Submit Food Donation →
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Sidebar AI Assistant & Rules Panel -->
+    <div class="donate-sidebar-column">
+      
+      <!-- AI Live Assistant Box -->
+      <div class="sidebar-box ai-assistant-box">
+        <div class="ai-box-header">
+          <div class="ai-box-title">
+            <span>✨</span> FoodLink AI Assistant
+          </div>
+          <span class="ai-status-pill {% if ai_online %}online{% else %}offline{% endif %}">
+            {% if ai_online %}Online (Gemma 4){% else %}Offline Fallback{% endif %}
+          </span>
+        </div>
+
+        <p class="ai-box-sub">
+          Need assistance drafting your donation? Use the smart buttons on the left or select a model below:
+        </p>
+
+        <div class="ai-model-picker">
+          <label for="formAiModelSelect" class="small-label">Active Gemma Model:</label>
+          <select id="formAiModelSelect" class="form-control select-input-sm">
+            {% for m in supported_models %}
+              <option value="{{ m.id }}" {% if m.id == default_model %}selected{% endif %}>
+                {{ m.name }} ({{ m.badge }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- AI Output Display Window -->
+        <div id="aiFeedbackContainer" class="ai-feedback-container hidden">
+          <div class="feedback-header">
+            <strong id="aiFeedbackTitle">AI Suggestion</strong>
+            <button type="button" class="btn-close-sm" id="btnCloseFeedback">×</button>
+          </div>
+          <div id="aiFeedbackBody" class="feedback-body">
+            <!-- Dynamic AI output will appear here -->
+          </div>
+          <div class="feedback-footer">
+            <button type="button" id="btnApplyAiSuggestion" class="btn btn-sm btn-primary">Apply to Form</button>
+            <span id="aiFeedbackModel" class="feedback-model-tag"></span>
+          </div>
+        </div>
+
+        <div class="ai-tip-box">
+          💡 <strong>Tip:</strong> You can type a brief item description, then click <em>"AI Polish Description"</em> to automatically generate an allergen & portion checklist!
+        </div>
+      </div>
+
+      <!-- Food Safety Restrictions Box -->
+      <div class="sidebar-box safety-rules-box">
+        <h3>🛡️ Important Donation Rules</h3>
+        <ul class="safety-rules-list">
+          <li>
+            <strong>Deterministic Expiration:</strong> Expiration dates must be in the future. Past dates are rejected immediately by backend logic.
+          </li>
+          <li>
+            <strong>No AI Safety Overrides:</strong> AI models are not permitted to determine if questionable or expired food is safe.
+          </li>
+          <li>
+            <strong>Proper Temperature:</strong> Chilled items must be kept below 4°C (40°F) until collection.
+          </li>
+          <li>
+            <strong>Sealed Packaging:</strong> Cooked foods must be stored in clean food-grade containers.
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}
